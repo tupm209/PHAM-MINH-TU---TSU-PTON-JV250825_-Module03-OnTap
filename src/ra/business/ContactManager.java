@@ -14,6 +14,18 @@ import java.util.Scanner;
 public class ContactManager {
     private final List<Contact> contacts = new ArrayList<>();
 
+    private Contact creatNewContact(ResultSet rs) throws SQLException {
+        return new Contact(rs.getInt("id"),
+                rs.getString("name"),
+                rs.getString("email"),
+                rs.getString("phone"),
+                rs.getBoolean("sex"),
+                rs.getString("address"),
+                rs.getInt("rating"),
+                rs.getString("note")
+        );
+    }
+
     public void displayList(){
         contacts.clear();
         try (Connection conn = ConnectionDB.openConnection()){
@@ -21,17 +33,7 @@ public class ContactManager {
                 CallableStatement callableStatement = conn.prepareCall("{call all_list()}");
                 ResultSet rs = callableStatement.executeQuery();
                 while (rs.next()){
-                    Contact contact = new Contact(
-                            rs.getInt("id"),
-                            rs.getString("name"),
-                            rs.getString("email"),
-                            rs.getString("phone"),
-                            rs.getBoolean("sex"),
-                            rs.getString("address"),
-                            rs.getInt("rating"),
-                            rs.getString("note")
-                    );
-                    contacts.add(contact);
+                    contacts.add(creatNewContact(rs));
                 }
 
                 if (contacts.isEmpty()){
@@ -82,16 +84,7 @@ public class ContactManager {
                 callableStatement.setInt(1,id);
                 ResultSet rs = callableStatement.executeQuery();
                 if (rs.next()){
-                    return new Contact(
-                            rs.getInt("id"),
-                            rs.getString("name"),
-                            rs.getString("email"),
-                            rs.getString("phone"),
-                            rs.getBoolean("sex"),
-                            rs.getString("address"),
-                            rs.getInt("rating"),
-                            rs.getString("note")
-                    );
+                    creatNewContact(rs);
                 }
             }
         } catch (SQLException e) {
@@ -103,14 +96,16 @@ public class ContactManager {
     public void updateContact(Scanner sc){
         System.out.println("Nhập id liên hệ muốn chỉnh sửa:");
         int inputId = Integer.parseInt(sc.nextLine());
-        if(findContactById(inputId) == null){
+        Contact foundContact = findContactById(inputId);
+
+        if(foundContact == null){
             System.out.println("Không tìm thấy liên hệ có mã là: " + inputId);
         }else{
-            Contact foundContact = findContactById(inputId);
             System.out.println("Thông tin liên hệ có mã là: " + inputId);
             foundContact.displayData();
             System.out.println("Nhập thông tin muốn cập nhật: ");
             foundContact.inputData(sc);
+
             try (Connection conn = ConnectionDB.openConnection()){
                 if (conn != null){
                     conn.setAutoCommit(false);
@@ -141,27 +136,26 @@ public class ContactManager {
     public void deleteContact(Scanner sc){
         System.out.println("Nhập mã liên hệ muốn xóa:");
         int inputId = Integer.parseInt(sc.nextLine());
-        if(findContactById(inputId) == null){
+        Contact foundContact = findContactById(inputId);
+        if(foundContact == null){
             System.out.println("Không tìm thấy liên hệ có mã là: " + inputId);
         }else{
-            Contact foundContact = findContactById(inputId);
             try (Connection conn = ConnectionDB.openConnection()){
                 if (conn != null){
                     conn.setAutoCommit(false);
                     CallableStatement callableStatement = conn.prepareCall("{call delete_contact(?)}");
                     callableStatement.setInt(1,foundContact.getId());
-                    boolean rs = callableStatement.executeUpdate() > 0;
-                    if(rs) {
-                        System.out.println("Bạn có chắc chắn muốn xóa không? (Y/N)");
-                        String choice = sc.nextLine();
-                        if(choice.equalsIgnoreCase("y")){
-                            conn.commit();
-                            System.out.println("Xóa thành công");
-                        }else{
-                            conn.rollback();
-                            System.out.println("Xóa thất bại");
-                        }
+                    System.out.println("Bạn có chắc chắn muốn xóa không? (Y/N)");
+                    String choice = sc.nextLine();
+                    if(choice.equalsIgnoreCase("y")){
+                        callableStatement.executeUpdate();
+                        conn.commit();
+                        System.out.println("Xóa thành công");
+                    }else{
+                        conn.rollback();
+                        System.out.println("Xóa thất bại");
                     }
+
                 }
             } catch (SQLException e) {
                 e.printStackTrace();
@@ -178,16 +172,7 @@ public class ContactManager {
                 callableStatement.setString(1,inputName);
                 ResultSet rs = callableStatement.executeQuery();
                 if (rs.next()){
-                    Contact foundContact = new Contact(
-                            rs.getInt("id"),
-                            rs.getString("name"),
-                            rs.getString("email"),
-                            rs.getString("phone"),
-                            rs.getBoolean("sex"),
-                            rs.getString("address"),
-                            rs.getInt("rating"),
-                            rs.getString("note")
-                    );
+                    Contact foundContact = creatNewContact(rs);
                     foundContact.displayData();
                 }else{
                     System.out.println("Không có thông tin liên hệ cần tìm");
@@ -205,17 +190,7 @@ public class ContactManager {
                 CallableStatement callableStatement = conn.prepareCall("{call sort_name_from_a_to_z()}");
                 ResultSet rs = callableStatement.executeQuery();
                 while (rs.next()){
-                    Contact contact = new Contact(
-                            rs.getInt("id"),
-                            rs.getString("name"),
-                            rs.getString("email"),
-                            rs.getString("phone"),
-                            rs.getBoolean("sex"),
-                            rs.getString("address"),
-                            rs.getInt("rating"),
-                            rs.getString("note")
-                    );
-                    contacts.add(contact);
+                    contacts.add(creatNewContact(rs));
                 }
                 if (contacts.isEmpty()){
                     System.err.println("Danh sách trống");
@@ -236,17 +211,7 @@ public class ContactManager {
                 CallableStatement callableStatement = conn.prepareCall("{call sort_name_from_z_to_a()}");
                 ResultSet rs = callableStatement.executeQuery();
                 while (rs.next()){
-                    Contact contact = new Contact(
-                            rs.getInt("id"),
-                            rs.getString("name"),
-                            rs.getString("email"),
-                            rs.getString("phone"),
-                            rs.getBoolean("sex"),
-                            rs.getString("address"),
-                            rs.getInt("rating"),
-                            rs.getString("note")
-                    );
-                    contacts.add(contact);
+                    contacts.add(creatNewContact(rs));
                 }
                 if (contacts.isEmpty()){
                     System.err.println("Danh sách trống");
