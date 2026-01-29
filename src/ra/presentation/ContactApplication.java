@@ -1,14 +1,13 @@
 package ra.presentation;
 
-import ra.business.ContactManager;
-import ra.entity.Contact;
+import ra.business.ContactMng;
 
 import java.util.Scanner;
 
 public class ContactApplication {
     public static void main(String[] args) {
         Scanner sc = new Scanner(System.in);
-        ContactManager contactManager = new ContactManager();
+        ContactMng contactMng = new ContactMng();
         do {
             System.out.println("----------------------- Contact Book Menu --------------------");
             System.out.println("1. Hiển thị danh sách liên hệ");
@@ -26,23 +25,25 @@ public class ContactApplication {
 
             switch (choice){
                 case 1:
-                    contactManager.displayList();
+                    contactMng.displayList();
                     break;
                 case 2:
-                    contactManager.addContact(sc);
+                    contactMng.addContact(sc);
                     break;
                 case 3:
-                    contactManager.updateContact(sc);
+                    contactMng.updateContact(sc);
                     break;
                 case 4:
-                    contactManager.deleteContact(sc);
+                    contactMng.deleteContact(sc);
                     break;
                 case 5:
-                    contactManager.findContactByName(sc);
+                    contactMng.findContactByName(sc);
                     break;
                 case 6:
+                    contactMng.thongKeSoLuongTheoRating();
                     break;
                 case 7:
+                    contactMng.thongKeQuaGioiTinh();
                     break;
                 case 8:
                     System.out.println("Hãy chọn cách sắp xếp bạn muốn");
@@ -51,10 +52,10 @@ public class ContactApplication {
                     int select = Integer.parseInt(sc.nextLine());
                     if(select == 1){
                         System.out.println("Sắp xếp tên từ A - Z:");
-                        contactManager.sortContactByNameAtoZ();
+                        contactMng.sortContactByNameAtoZ();
                     }else if(select == 2){
                         System.out.println("Sắp xếp tên từ Z - A:");
-                        contactManager.sortContactByNameZtoA();
+                        contactMng.sortContactByNameZtoA();
                     }else{
                         System.err.println("Lựa chọn không phù hợp");
                     }
